@@ -18,9 +18,17 @@ app = Flask(__name__)
 app.secret_key = "bnNoqxXSgzoXSOezxpZjb8mrMp5L0L4mJ4o8nRzn"
 
 start_queue = []
+schedule_lock = False
+GAME_SIZE = 4
+games = {} # <gameid, list(channelids)>
+teams = {} # <channelid, <list(userids), gameid> >
+users = {} # <userid, channelid>
 
 def generate_game_id():
-	return "game-ch-" + str(random.randint(10000, 90000))
+	return "gameid-" + str(random.randint(10000, 90000))
+
+def generate_team_id():
+	return "teamid-" + str(random.randint(10000, 90000))
 
 def generate_user_id():
 	return "uid-" + str(random.randint(10000, 90000))
@@ -34,10 +42,8 @@ def join():
 	global start_queue
 	new_user = generate_user_id()
 	start_queue.append(new_user)
-	if(len(start_queue)%2 == 0 and len(start_queue) >= 4):
-		print("new game scheduled")
-		Timer(5.0, start_game, args=[start_queue[:]]).start()
 	print(start_queue)
+	check_start_game()
 	return json.dumps({"payload": {"uid": new_user}})
 
 @app.route('/update-game', methods=['POST'])
@@ -50,27 +56,51 @@ def update_game():
 	return "ok"
 
 
-def start_game(users):
-	sleep(5)
-	if(len(users)%2 != 0 or len(users) < 4):
-		return
+def check_start_game():
+	global schedule_lock, start_queue
+	if(len(start_queue) >= GAME_SIZE and not schedule_lock):
+		print("new game scheduled")
+		schedule_lock = True
+		Timer(5.0, start_game, args=[start_queue[:GAME_SIZE]]).start()
+		return True
+	return False
 
-	random.shuffle(users)
-	new_game = [{"users": [users[i], users[i+1]]} for i in range(0, len(users), 2)]
+def start_game(participants):
+	sleep(5)
+	random.shuffle(participants)
+	new_game = [{"users": [participants[i], participants[i+1]]} for i in range(0, len(participants), 2)]
 	print("initiated: ", new_game)
 
 	for g in new_game:
 		pusher.trigger([g["users"][0], g["users"][1]], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
 
-	global start_queue
-	start_queue = list(set(start_queue)-set(users))
+	global start_queue, schedule_lock
+	start_queue = list(set(start_queue)-set(participants))
+	schedule_lock = False
+
+	global games, teams, users
+	new_teams = []
+	new_gameid = generate_game_id()
+	for i in range(0, len(participants), 2):
+		new_team = generate_team_id()
+		ua = participants[i]
+		ub = participants[i+1]
+		users[ua] = new_team
+		users[ub] = new_team
+		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid}
+		new_teams.append(new_team)
+	games[new_gameid] = new_teams
+	print(games, teams, users)
+	check_start_game()
+
 
 @app.route('/debug')
 def debug():
 	pusher.trigger('my-channel', 'my-event', {'message': 'hello world'})
+	print(games, teams, users)
 	return "fine" 
 
-	
+
 if __name__ == '__main__':
 	#host='0.0.0.0' only with debug disabled - security risk
 	app.run(port=8080, debug=True)
