@@ -1,6 +1,13 @@
 from flask import Flask
 from flask import render_template, request, redirect, session, url_for, escape, make_response, flash, abort
 import database
+from pusher import Pusher
+
+pusher = Pusher(
+  app_id='189177',
+  key='fb45d9e64fdf2db64ed2',
+  secret='1ba32d9ad91822e34883'
+)
 
 app = Flask(__name__)
 # (session encryption) keep this really secret:
@@ -14,38 +21,14 @@ database.db.create_all(app=app) # create tables
 
 @app.route('/')
 def index():
-	return "ok"
+	return render_template('demo.html')
 
 @app.route('/debug')
 def debug():
-	some_internal_function()
+	pusher.trigger('my-channel', 'my-event', {'message': 'hello world'})
 	return "fine" 
-	
-# Flask-SocketIO -------------------------------------------------------
-@app.route('/socket_index')
-def my_socket_page():
-	return render_template('sockets_example.html')
 
-from flask_socketio import SocketIO, send, emit
-# WebSockets setup -- "https://flask-socketio.readthedocs.org/en/latest/"
-# See docs for 'rooms' - join/leave etc.
-socketio = SocketIO(app)
-# SocketIO RECEIVE and SEND Messages
-# Originating from a user
-@socketio.on('user_clicked_button') # CUSTOM or use predefined 'json', or 'message' (for strings)
-def handle_my_custom_event(arg1, arg2): # any number of args
-    print(arg1); print(arg2)
-    print(session)
-    emit('all_ok', "You sent me this:"+arg2) # broadcast=True
-
-# Originating from this server
-def some_internal_function():
-	# different emit()/send() (notice 'socketio' prefix)
-    socketio.emit('big_news', {'data': 42}) # broadcast is implicit
-
-# -------------------------------------------------------------------
 
 if __name__ == '__main__':
 	#host='0.0.0.0' only with debug disabled - security risk
-	#app.run(port=8080, debug=True) - don't use this one with sockets
-	socketio.run(app, port=8080, debug=True) # only use this with sockets
+	app.run(port=8080, debug=True)

@@ -1,0 +1,19 @@
+<script src="//js.pusher.com/3.0/pusher.min.js"></script>
+<script>
+    var pusher = new Pusher('fb45d9e64fdf2db64ed2');
+
+    var channel = pusher.subscribe('my-channel');
+
+    channel.bind('my-event', function(data) {
+      alert('An event was triggered with message: ' + data.message);
+    });
+
+    function notify_clicked(){
+        console.log("nothing happened");
+    }
+
+</script>
+
+<h3>Hello Web Sockets</h3>
+<button onclick="notify_clicked();">Send message to server</button>
+
