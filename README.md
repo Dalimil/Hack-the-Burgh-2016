@@ -29,8 +29,9 @@ Client updates the game:
 	- call POST /update with changes and uid
 
 Client finishes the game:
-	- call POST /finish with uid
-	- now just wait for the 'game-finished' event with 'payload' in their personal channel
+	- call POST /finish with uid 
+	- team members receive 'game-finished' event in their channel
+	- now just wait for the 'game-result' event with 'payload' in their personal channel
 
 Client closes the game/app or leaves the queue:
 	- unsubscribe from the personal channel

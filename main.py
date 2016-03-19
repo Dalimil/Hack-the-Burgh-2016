@@ -46,15 +46,35 @@ def join():
 	check_start_game()
 	return json.dumps({"payload": {"uid": new_user}})
 
-@app.route('/update-game', methods=['POST'])
+@app.route('/update', methods=['POST'])
 def update_game():
-	if request.method == 'POST':
-		uid = request.form['uid']
-		changes = request.form['payload']
-		print(changes)
+	uid = request.form['uid']
+	data = request.form['payload']
+	print(data)
 
 	return "ok"
 
+@app.route('/finish', methods=['POST'])
+def finish_game():
+	uid = request.form['uid']
+	teamid = users[uid]
+	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
+	Timer(2.0, check_game_over, args=[teams[teamid]["gameid"]]).start()
+
+def check_game_over(gameid):
+	is_over = all(teams[t]["state"]["finished"] for t in games[gameid])
+	if is_over:
+		players = get_all_players(gameid)
+		pusher.trigger(players, 'game-result', get_game_results(gameid))
+
+def get_all_players(gameid):
+	players = []
+	for t in games[gameid]:
+		players += teams[t]["users"]
+	return players
+
+def get_game_results(gameid):
+	return "1 2 3"
 
 def check_start_game():
 	global schedule_lock, start_queue
@@ -66,7 +86,6 @@ def check_start_game():
 	return False
 
 def start_game(participants):
-	sleep(5)
 	random.shuffle(participants)
 	new_game = [{"users": [participants[i], participants[i+1]]} for i in range(0, len(participants), 2)]
 	print("initiated: ", new_game)
@@ -87,7 +106,7 @@ def start_game(participants):
 		ub = participants[i+1]
 		users[ua] = new_team
 		users[ub] = new_team
-		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid}
+		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid, "state":{"finished":False}}
 		new_teams.append(new_team)
 	games[new_gameid] = new_teams
 	print(games, teams, users)
