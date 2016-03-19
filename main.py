@@ -39,9 +39,14 @@ def join():
 		Timer(5.0, start_game).start()
 	return json.dumps({"payload": {"uid": new_user}})
 
-@app.route('/update-game')
+@app.route('/update-game', methods=['POST'])
 def update_game():
-	return "ok"
+	if request.method == 'POST':
+		uid = request.form['uid']
+		changes = request.form['payload']
+		print(changes)
+
+	return "ok: "+str(request.method == 'POST')
 
 @app.route('/debug')
 def debug():
@@ -51,6 +56,7 @@ def debug():
 
 def start_game():
 	sleep(5)
+	global start_queue
 	if(len(start_queue)%2 != 0 or len(start_queue) < 4):
 		return
 
@@ -59,6 +65,8 @@ def start_game():
 
 	for g in new_game:
 		pusher.trigger([g["users"][0], g["users"][1]], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
+
+	start_queue = []
 
 
 if __name__ == '__main__':

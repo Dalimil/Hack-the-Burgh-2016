@@ -26,8 +26,11 @@ Client receives 'game-started' event with 'payload' in their personal channel:
 	- use this to initialize the game
 
 Client updates the game:
-	- call /update - or can trigger a pusher event???
+	- call POST /update with changes and uid
+
+Client finishes the game:
+	- call POST /finish with uid
+	- now just wait for the 'game-finished' event with 'payload' in their personal channel
 
 Client closes the game/app or leaves the queue:
 	- unsubscribe from the personal channel
-
