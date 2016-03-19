@@ -14,8 +14,13 @@ database.db.create_all(app=app) # create tables
 
 @app.route('/')
 def index():
-	return "OK"
+	return "ok"
 
+@app.route('/debug')
+def debug():
+	some_internal_function()
+	return "fine" 
+	
 # Flask-SocketIO -------------------------------------------------------
 @app.route('/socket_index')
 def my_socket_page():
