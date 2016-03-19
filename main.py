@@ -55,7 +55,6 @@ def update_game():
 
 	return "ok"
 
-
 def check_start_game():
 	global schedule_lock, start_queue
 	if(len(start_queue) >= GAME_SIZE and not schedule_lock):
@@ -78,7 +77,7 @@ def start_game(participants):
 	start_queue = list(set(start_queue)-set(participants))
 	schedule_lock = False
 
-	global games, teams, users
+	global games, teams, users, scores
 	new_teams = []
 	new_gameid = generate_game_id()
 	for i in range(0, len(participants), 2):
@@ -93,6 +92,11 @@ def start_game(participants):
 	print(games, teams, users)
 	check_start_game()
 
+def add_score(game_id, team_id, score):
+        if scores.has_key(game_id) and scores[game_id].has_key(team_id):
+		scores[game_id][team_id] += score*2.0/GAME_SIZE
+	else:
+		scores[game_id][team_id] = score*2.0/GAME_SIZE
 
 @app.route('/debug')
 def debug():
