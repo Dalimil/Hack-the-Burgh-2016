@@ -1,6 +1,8 @@
 import random
 import json
 
+scores = {} # <gameid, <userid, score>>
+
 def generate_shapes(no_of_players):
   shapes = [random.randint(0, 4) for x in range(no_of_players)]
   return shapes
@@ -28,11 +30,14 @@ def order(results):
 
 # Call when a new score has been received
 def new_score_received(gameid, teamid, score):
-        global scores
-        if scores.has_key(gameid) and scores[gameid].has_key(teamid):
-		scores[gameid][teamid] += score
+        if scores.has_key(gameid):
+                if scores[gameid].has_key(teamid):
+		         scores[gameid][teamid] += score
+                else:
+                         scores[gameid][teamid] = score
 	else:
-		scores[gameid][teamid] = score
+		scores[gameid] = {}
+                scores[gameid][teamid] = score
 
 # Call when all scores for the given gameid have been collected
 def get_game_results(gameid):
