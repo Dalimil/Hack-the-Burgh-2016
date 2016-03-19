@@ -23,6 +23,7 @@ Client clicks join button:
 
 Client receives 'game-started' event with 'payload' in their personal channel:
 	{'payload':{"shapes":[]} }
+	- use this to initialize the game
 
 Client updates the game:
 	- call /update - or can trigger a pusher event???
