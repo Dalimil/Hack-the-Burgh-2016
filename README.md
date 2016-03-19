@@ -29,8 +29,14 @@ Client updates the game:
 	- call POST /update with changes and uid
 
 Client finishes the game:
-	- call POST /finish with uid
-	- now just wait for the 'game-finished' event with 'payload' in their personal channel
+	- call POST /finish with uid 
+	- team members receive 'game-finished' event in their channel
+	- now just wait for the 'game-products' event with 'payload' in their personal channel
+	- you can start rating games now...
+
+Clien assigns a rating to a game:
+	- call POST /rate with score and teamid - you have this from the previous 'game-products' message
+	- wait for the 'game-results' event with 'payload' in their channel (when all scores have been collected for all players)
 
 Client closes the game/app or leaves the queue:
 	- unsubscribe from the personal channel

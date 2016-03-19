@@ -24,6 +24,9 @@ games = {} # <gameid, list(channelids)>
 teams = {} # <channelid, <list(userids), gameid> >
 users = {} # <userid, channelid>
 
+game_states = {} # indexed by teamid
+game_ratings = {} # counts indexed by gameid
+
 def generate_game_id():
 	return "gameid-" + str(random.randint(10000, 90000))
 
@@ -46,14 +49,51 @@ def join():
 	check_start_game()
 	return json.dumps({"payload": {"uid": new_user}})
 
-@app.route('/update-game', methods=['POST'])
+@app.route('/update', methods=['POST'])
 def update_game():
-	if request.method == 'POST':
-		uid = request.form['uid']
-		changes = request.form['payload']
-		print(changes)
+	uid = request.form['uid']
+	data = request.form['payload']
+	print(data)
 
 	return "ok"
+
+@app.route('/finish', methods=['POST'])
+def finish_game():
+	uid = request.form['uid']
+	teamid = users[uid]
+	game_states[teamid]["phase"] = "stopped"
+	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
+	Timer(2.0, check_game_over, args=[teams[teamid]["gameid"]]).start()
+
+@app.route('/rate', methods=['POST'])
+def rate_game():
+	teamid = request.form['teamid']
+	score = request.form['score']
+	gameid = teams[teamid]["gameid"]
+	gamedata.new_score_received(gameid, teamid, score)
+
+	if(game_ratings[gameid] == (GAME_SIZE//2 - 1)*(GAME_SIZE//2)):
+		send_game_results(gameid)
+
+def check_game_over(gameid):
+	is_over = all(game_states[t]["phase"] == "stopped" for t in games[gameid])
+	if is_over:
+		players = get_all_players(gameid)
+		pusher.trigger(players, 'game-products', get_game_products(gameid))
+
+def get_all_players(gameid):
+	players = []
+	for t in games[gameid]:
+		players += teams[t]["users"]
+	return players
+
+def get_game_products(gameid):
+	return "1 2 3"
+
+def send_game_results():
+	results = gamedata.get_game_results(gameid)
+	players = get_all_players(gameid)
+	pusher.trigger(players, 'game-results', {"payload": results})
 
 def check_start_game():
 	global schedule_lock, start_queue
@@ -65,7 +105,6 @@ def check_start_game():
 	return False
 
 def start_game(participants):
-	sleep(5)
 	random.shuffle(participants)
 	new_game = [{"users": [participants[i], participants[i+1]]} for i in range(0, len(participants), 2)]
 	print("initiated: ", new_game)
@@ -77,7 +116,7 @@ def start_game(participants):
 	start_queue = list(set(start_queue)-set(participants))
 	schedule_lock = False
 
-	global games, teams, users, scores
+	global games, teams, users
 	new_teams = []
 	new_gameid = generate_game_id()
 	for i in range(0, len(participants), 2):
@@ -87,16 +126,11 @@ def start_game(participants):
 		users[ua] = new_team
 		users[ub] = new_team
 		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid}
+		game_states[new_team] = {"phase":"running"}
 		new_teams.append(new_team)
 	games[new_gameid] = new_teams
 	print(games, teams, users)
 	check_start_game()
-
-def add_score(game_id, team_id, score):
-        if scores.has_key(game_id) and scores[game_id].has_key(team_id):
-		scores[game_id][team_id] += score*2.0/GAME_SIZE
-	else:
-		scores[game_id][team_id] = score*2.0/GAME_SIZE
 
 @app.route('/debug')
 def debug():
