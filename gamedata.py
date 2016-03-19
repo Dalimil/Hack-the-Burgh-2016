@@ -3,8 +3,8 @@ import json
 
 scores = {} # <gameid, <userid, score>>
 
-def generate_shapes(no_of_players):
-	shapes = [random.randint(0, 4) for x in range(no_of_players)]
+def generate_shapes():
+	shapes = [random.randint(0, 4) for x in range(6)]
 	return shapes
 
 

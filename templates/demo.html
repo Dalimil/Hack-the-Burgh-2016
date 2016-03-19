@@ -1,19 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script src="//js.pusher.com/3.0/pusher.min.js"></script>
 <script>
+$(document).ready(function(){
     var pusher = new Pusher('fb45d9e64fdf2db64ed2');
 
-    var channel = pusher.subscribe('my-channel');
+    $.getJSON("/join", function(data, status){
+        console.log(data["payload"]["uid"]);
+        var channel = pusher.subscribe(data["payload"]["uid"]);
 
-    channel.bind('my-event', function(data) {
-      alert('An event was triggered with message: ' + data.message);
+        channel.bind('game-started', function(data) {
+            console.log(data);
+        });
     });
-
-    function notify_clicked(){
-        console.log("nothing happened");
-    }
+    
+});
+    
 
 </script>
-
+</head>
+<body>
 <pre>
 API
 
@@ -41,3 +49,5 @@ Clien assigns a rating to a game:
 Client closes the game/app or leaves the queue:
     - unsubscribe from the personal channel
 </pre>
+</body>
+</html>

@@ -109,6 +109,7 @@ def start_game(participants):
 	print("initiated: ", new_game)
 
 	for g in new_game:
+		print(g["users"][0], g["users"][1])
 		pusher.trigger([g["users"][0], g["users"][1]], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
 
 	global start_queue, schedule_lock
