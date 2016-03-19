@@ -14,8 +14,7 @@ pusher = Pusher(
 )
 
 app = Flask(__name__)
-# (session encryption) keep this really secret:
-app.secret_key = "bnNoqxXSgzoXSOezxpZjb8mrMp5L0L4mJ4o8nRzn"
+app.secret_key = "bnNoqxXSgzoXS3j4v3v3zv8nRzn"
 
 start_queue = []
 schedule_lock = False
