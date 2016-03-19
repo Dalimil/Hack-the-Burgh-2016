@@ -132,7 +132,6 @@ def start_game(participants):
 	print(games, teams, users)
 	check_start_game()
 
-
 @app.route('/debug')
 def debug():
 	pusher.trigger('my-channel', 'my-event', {'message': 'hello world'})

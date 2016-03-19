@@ -1,7 +1,8 @@
 import random
+import json
 
-def generate_shapes():
-  shapes = [random.randint(0, 4) for x in range(6)]
+def generate_shapes(no_of_players):
+  shapes = [random.randint(0, 4) for x in range(no_of_players)]
   return shapes
 
 
@@ -10,28 +11,29 @@ def generate_shapes():
 # corresponds to a specific player's score.
 
 # sums up an averages the results
+# {"user_id": score}
 def sumResults(results) :
-  size = len(results)
-  summed_result = [[x, 0.0] for x in range(size)]
-  for L in results:
-    for i in range(size) :
-      summed_result[i][1] += L[i]
-  for player in summed_result:
-    player[1]  = round(player[1]/size, 1)
-  return summed_result
+        res = []
+        size = len(results)
+        for key, value in results.iteritems():
+                 temp = [key,round(value*1.0/size, 1)]
+                 res.append(temp)
+        return res
 
-# orders the results
-# list of ["player_order#", "scoree"]
+# returns ordered [["user_id", averaged_score]]
 def order(results):
-  sums = sumResults(results)
-  sums.sort(key=lambda x: x[1])
-  return reversed(sums)
-
+        sums = sumResults(results)
+        sums.sort(key=lambda x: x[1])
+        return reversed(sums)
 
 # Call when a new score has been received
 def new_score_received(gameid, teamid, score):
-	pass
+        global scores
+        if scores.has_key(gameid) and scores[gameid].has_key(teamid):
+		scores[gameid][teamid] += score
+	else:
+		scores[gameid][teamid] = score
 
 # Call when all scores for the given gameid have been collected
 def get_game_results(gameid):
-	pass
+	return order(scores[gameid])
