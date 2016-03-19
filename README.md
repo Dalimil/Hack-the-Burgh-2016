@@ -14,3 +14,19 @@ pip install -r requirements.txt
 ```sh
 python main.py
 ```
+
+### API
+```
+Client clicks join button:
+	- call /join
+	- subscribe to the channel-id returned in the 'payload'
+
+Client receives 'game-started' event with 'payload' in their personal channel:
+	{'payload':{"shapes":[]} }
+
+Client updates the game:
+	- call /update - or can trigger a pusher event???
+
+Client closes the game/app or leaves the queue:
+	- unsubscribe from the personal channel
+
