@@ -14,6 +14,30 @@
 
 </script>
 
-<h3>Hello Web Sockets</h3>
-<button onclick="notify_clicked();">Send message to server</button>
+<pre>
+API
 
+Client clicks join button:
+    - call /join
+    - subscribe to the channel-id returned in the 'payload'
+
+Client receives 'game-started' event with 'payload' in their personal channel:
+    {'payload':{"shapes":[]} }
+    - use this to initialize the game
+
+Client updates the game:
+    - call POST /update with changes and uid
+
+Client finishes the game:
+    - call POST /finish with uid 
+    - team members receive 'game-finished' event in their channel
+    - now just wait for the 'game-products' event with 'payload' in their personal channel
+    - you can start rating games now...
+
+Clien assigns a rating to a game:
+    - call POST /rate with score and teamid - you have this from the previous 'game-products' message
+    - wait for the 'game-results' event with 'payload' in their channel (when all scores have been collected for all players)
+
+Client closes the game/app or leaves the queue:
+    - unsubscribe from the personal channel
+</pre>
