@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, session, url_for, escape, 
 from pusher import Pusher
 import random
 import json
+import gamedata
 from threading import Timer
 from time import sleep
 
@@ -57,7 +58,7 @@ def start_game():
 	new_game = [{"users": [users[i]['id'], users[i+1]['id']]} for i in range(0, len(start_queue), 2)]
 
 	for g in new_game:
-		pusher.trigger([g["users"][0], g["users"][1]], 'game-started', {"payload": {"shapes": generate_shapes()}})
+		pusher.trigger([g["users"][0], g["users"][1]], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
 
 
 if __name__ == '__main__':

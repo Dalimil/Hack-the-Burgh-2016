@@ -1,3 +1,10 @@
+import random
+
+def generate_shapes():
+  shapes = [random.randint(0, 4) for x in range(6)]
+  return shapes
+
+
 # Every list represents all ratings made by one player
 # players are in a set order so that the first element of each list
 # corresponds to a specific player's score.
