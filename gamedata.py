@@ -26,3 +26,12 @@ def order(results):
   sums = sumResults(results)
   sums.sort(key=lambda x: x[1])
   return reversed(sums)
+
+
+# Call when a new score has been received
+def new_score_received(gameid, teamid, score):
+	pass
+
+# Call when all scores for the given gameid have been collected
+def get_game_results(gameid):
+	pass

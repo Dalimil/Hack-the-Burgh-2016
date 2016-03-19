@@ -24,6 +24,9 @@ games = {} # <gameid, list(channelids)>
 teams = {} # <channelid, <list(userids), gameid> >
 users = {} # <userid, channelid>
 
+game_states = {} # indexed by teamid
+game_ratings = {} # counts indexed by gameid
+
 def generate_game_id():
 	return "gameid-" + str(random.randint(10000, 90000))
 
@@ -58,14 +61,25 @@ def update_game():
 def finish_game():
 	uid = request.form['uid']
 	teamid = users[uid]
+	game_states[teamid]["phase"] = "stopped"
 	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
 	Timer(2.0, check_game_over, args=[teams[teamid]["gameid"]]).start()
 
+@app.route('/rate', methods=['POST'])
+def rate_game():
+	teamid = request.form['teamid']
+	score = request.form['score']
+	gameid = teams[teamid]["gameid"]
+	gamedata.new_score_received(gameid, teamid, score)
+
+	if(game_ratings[gameid] == (GAME_SIZE//2 - 1)*(GAME_SIZE//2)):
+		send_game_results(gameid)
+
 def check_game_over(gameid):
-	is_over = all(teams[t]["state"]["finished"] for t in games[gameid])
+	is_over = all(game_states[t]["phase"] == "stopped" for t in games[gameid])
 	if is_over:
 		players = get_all_players(gameid)
-		pusher.trigger(players, 'game-result', get_game_results(gameid))
+		pusher.trigger(players, 'game-products', get_game_products(gameid))
 
 def get_all_players(gameid):
 	players = []
@@ -73,8 +87,13 @@ def get_all_players(gameid):
 		players += teams[t]["users"]
 	return players
 
-def get_game_results(gameid):
+def get_game_products(gameid):
 	return "1 2 3"
+
+def send_game_results():
+	results = gamedata.get_game_results(gameid)
+	players = get_all_players(gameid)
+	pusher.trigger(players, 'game-results', {"payload": results})
 
 def check_start_game():
 	global schedule_lock, start_queue
@@ -106,7 +125,8 @@ def start_game(participants):
 		ub = participants[i+1]
 		users[ua] = new_team
 		users[ub] = new_team
-		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid, "state":{"finished":False}}
+		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid}
+		game_states[new_team] = {"phase":"running"}
 		new_teams.append(new_team)
 	games[new_gameid] = new_teams
 	print(games, teams, users)
