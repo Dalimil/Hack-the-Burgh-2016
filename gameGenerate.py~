@@ -1,0 +1,17 @@
+import random
+import json
+
+def newGame() :
+  shapes = ["object:"+str(random.randint(0, 4)) for e in range(6)]
+  res = "{shapes:["
+  for x in range(6):
+    if x != 0:
+      res += ","
+    res += "{object:" + str(random.randint(0, 4))+ "}"
+  res += "]}"
+  return res
+
+
+print newGame()
+
+ 
