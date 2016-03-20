@@ -155,5 +155,4 @@ def debug():
 
 
 if __name__ == '__main__':
-	#host='0.0.0.0' only with debug disabled - security risk
-	app.run(port=8080, debug=True)
+	app.run(port=8080)
