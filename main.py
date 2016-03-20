@@ -18,7 +18,8 @@ app.secret_key = "bnNoqxXSgzoXS3j4v3v3zv8nRzn"
 
 start_queue = []
 schedule_lock = False
-GAME_SIZE = 2
+GAME_SIZE = 4
+TEAM_SIZE = 1
 games = {} # <gameid, list(channelids)>
 teams = {} # <channelid, <list(userids), gameid> >
 users = {} # <userid, channelid>
@@ -95,7 +96,7 @@ def rate_game():
 	gameid = teams[teamid]["gameid"]
 	gamedata.new_score_received(gameid, teamid, score)
 
-	if(game_ratings[gameid] >= (GAME_SIZE//2 - 1)*(GAME_SIZE//2)):
+	if(game_ratings[gameid] >= (TEAM_SIZE - 1)*(TEAM_SIZE)):
 		send_game_results(gameid)
 	return "ok"
 
@@ -142,12 +143,11 @@ def check_start_game():
 
 def start_game(participants):
 	random.shuffle(participants)
-	new_game = [{"users": [participants[i], participants[i+1]]} for i in range(0, len(participants), 2)]
+	new_game = [{"users": [participants[j] for j in range(i, TEAM_SIZE)]} for i in range(0, len(participants), TEAM_SIZE)]
 	print("initiated: ", new_game)
 
 	for g in new_game:
-		print(g["users"][0], g["users"][1])
-		pusher.trigger([g["users"][0], g["users"][1]], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
+		pusher.trigger(g["users"], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
 
 	global start_queue, schedule_lock
 	start_queue = list(set(start_queue)-set(participants))
@@ -156,13 +156,12 @@ def start_game(participants):
 	global games, teams, users
 	new_teams = []
 	new_gameid = generate_game_id()
-	for i in range(0, len(participants), 2):
+	for i in range(0, len(participants), TEAM_SIZE):
 		new_team = generate_team_id()
-		ua = participants[i]
-		ub = participants[i+1]
-		users[ua] = new_team
-		users[ub] = new_team
-		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid}
+		uss = [participants[j] for j in range(i, TEAM_SIZE)]
+		for i in uss:
+			users[i] = new_team
+		teams[new_team] = {"users":uss, "gameid": new_gameid}
 		game_states[new_team] = {"phase":"running", "config": None}
 		new_teams.append(new_team)
 	games[new_gameid] = new_teams
