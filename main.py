@@ -60,11 +60,13 @@ def update_game():
 	teamid = users[uid]
 	print(uid, shapes)
 	game_states[teamid]["config"] = shapes
+	pusher.trigger(teams[teamid]["users"], "game-updated", {"payload": shapes})
 	return "ok"
 
 @app.route('/finish', methods=['POST'])
 def finish_game():
 	data  = request.get_json()
+	print("finish: ", data)
 	uid = data['uid']
 	img_name = data['name']
 

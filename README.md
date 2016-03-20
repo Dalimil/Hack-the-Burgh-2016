@@ -27,6 +27,7 @@ Client receives 'game-started' event with 'payload' in their personal channel:
 
 Client updates the game:
 	- call POST /update with changes and uid
+	- constantly listen to 'game-updated' event which is called whenever one of the team members updates the game
 
 Client finishes the game:
 	- call POST /finish with uid 
