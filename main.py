@@ -73,7 +73,7 @@ def finish_game():
 	img_name = data['name']
 
 	if not users.has_key(uid):
-		print("error")
+		print("error", users)
 		return "error"
 
 	teamid = users[uid]
@@ -146,9 +146,11 @@ def start_game(participants):
 	new_game = [{"users": [participants[j] for j in range(i, i+TEAM_SIZE)]} for i in range(0, len(participants), TEAM_SIZE)]
 	print("initiated: ", new_game)
 
+	new_shapes = gamedata.generate_shapes()
+
 	for g in new_game:
 		print(g["users"])
-		pusher.trigger(g["users"], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
+		pusher.trigger(g["users"], 'game-started', {"payload": {"shapes": new_shapes}})
 
 	global start_queue, schedule_lock
 	start_queue = list(set(start_queue)-set(participants))
