@@ -1,3 +1,5 @@
+First in the AWS console run:
+
 sudo apt-get update && sudo apt-get install apache2 libapache2-mod-wsgi python-pip && sudo pip install flask && mkdir ~/flaskapp && sudo ln -sT ~/flaskapp /var/www/html/flaskapp && cd ~/flaskapp && wget https://github.com/Dalimil/Hack-the-Burgh-2016/archive/master.zip && unzip master.zip && mv Hack-the-Burgh-2016-master/* .
 
 -----------------
@@ -16,3 +18,6 @@ WSGIScriptAlias / /var/www/html/flaskapp/flaskapp.wsgi
 -------------------
 
 sudo apachectl restart
+
+and it should be running on the public domain
+```
