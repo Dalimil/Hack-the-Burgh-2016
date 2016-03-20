@@ -1,6 +1,6 @@
 First in the AWS console run:
 
-sudo apt-get update && sudo apt-get install apache2 libapache2-mod-wsgi python-pip && sudo pip install flask && mkdir ~/flaskapp && sudo ln -sT ~/flaskapp /var/www/html/flaskapp && cd ~/flaskapp && wget https://github.com/Dalimil/Hack-the-Burgh-2016/archive/master.zip && unzip master.zip && mv Hack-the-Burgh-2016-master/* .
+sudo apt-get update && sudo apt-get install apache2 libapache2-mod-wsgi python-pip && sudo pip install flask && mkdir ~/flaskapp && sudo ln -sT ~/flaskapp /var/www/html/flaskapp && cd ~/flaskapp && rm -f master.zip && rm -rf templates && wget https://github.com/Dalimil/Hack-the-Burgh-2016/archive/master.zip && unzip -o master.zip && mv -f Hack-the-Burgh-2016-master/* . && sudo pip install -r requirements.txt
 
 -----------------
 In the apache configuration file located at /etc/apache2/sites-enabled/000-default.conf, add the following block just after the DocumentRoot /var/www/html line:
@@ -20,4 +20,9 @@ WSGIScriptAlias / /var/www/html/flaskapp/flaskapp.wsgi
 sudo apachectl restart
 
 and it should be running on the public domain
+
+to update:
+
+cd ~/flaskapp && rm -f master.zip && rm -rf templates && wget https://github.com/Dalimil/Hack-the-Burgh-2016/archive/master.zip && unzip -o master.zip && mv -f Hack-the-Burgh-2016-master/* .
+
 ```
