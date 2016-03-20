@@ -18,7 +18,7 @@ app.secret_key = "bnNoqxXSgzoXS3j4v3v3zv8nRzn"
 
 start_queue = []
 schedule_lock = False
-GAME_SIZE = 4
+GAME_SIZE = 2
 TEAM_SIZE = 1
 games = {} # <gameid, list(channelids)>
 teams = {} # <channelid, <list(userids), gameid> >
@@ -143,10 +143,11 @@ def check_start_game():
 
 def start_game(participants):
 	random.shuffle(participants)
-	new_game = [{"users": [participants[j] for j in range(i, TEAM_SIZE)]} for i in range(0, len(participants), TEAM_SIZE)]
+	new_game = [{"users": [participants[j] for j in range(i, i+TEAM_SIZE)]} for i in range(0, len(participants), TEAM_SIZE)]
 	print("initiated: ", new_game)
 
 	for g in new_game:
+		print(g["users"])
 		pusher.trigger(g["users"], 'game-started', {"payload": {"shapes": gamedata.generate_shapes()}})
 
 	global start_queue, schedule_lock
@@ -158,7 +159,7 @@ def start_game(participants):
 	new_gameid = generate_game_id()
 	for i in range(0, len(participants), TEAM_SIZE):
 		new_team = generate_team_id()
-		uss = [participants[j] for j in range(i, TEAM_SIZE)]
+		uss = [participants[j] for j in range(i, i+TEAM_SIZE)]
 		for i in uss:
 			users[i] = new_team
 		teams[new_team] = {"users":uss, "gameid": new_gameid}
