@@ -18,7 +18,7 @@ app.secret_key = "bnNoqxXSgzoXS3j4v3v3zv8nRzn"
 
 start_queue = []
 schedule_lock = False
-GAME_SIZE = 4
+GAME_SIZE = 2
 games = {} # <gameid, list(channelids)>
 teams = {} # <channelid, <list(userids), gameid> >
 users = {} # <userid, channelid>
@@ -62,11 +62,15 @@ def update_game():
 def finish_game():
 	uid = request.form['uid']
 	img_name = request.form['name']
+	if not users.has_key(uid):
+		return "error"
+
 	teamid = users[uid]
 	game_states[teamid]["phase"] = "stopped"
 	game_states[teamid]["img_name"] = img_name
 	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
 	Timer(2.0, check_game_over, args=[teams[teamid]["gameid"]]).start()
+	return "ok"
 
 @app.route('/rate', methods=['POST'])
 def rate_game():
@@ -77,6 +81,7 @@ def rate_game():
 
 	if(game_ratings[gameid] == (GAME_SIZE//2 - 1)*(GAME_SIZE//2)):
 		send_game_results(gameid)
+	return "ok"
 
 def check_game_over(gameid):
 	is_over = all(game_states[t]["phase"] == "stopped" for t in games[gameid])
