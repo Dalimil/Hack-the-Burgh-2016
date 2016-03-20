@@ -50,17 +50,21 @@ def join():
 
 @app.route('/update', methods=['POST'])
 def update_game():
-	uid = request.form['uid']
-	data = request.form['payload']
-	print(data)
-
+	data  = request.get_json()
+	uid = data['uid']
+	shapes = data['shapes']
+	teamid = users[uid]
+	print(uid, shapes)
+	game_states[teamid]["config"] = shapes
 	return "ok"
 
 @app.route('/finish', methods=['POST'])
 def finish_game():
 	uid = request.form['uid']
+	img_name = request.form['name']
 	teamid = users[uid]
 	game_states[teamid]["phase"] = "stopped"
+	game_states[teamid]["img_name"] = img_name
 	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
 	Timer(2.0, check_game_over, args=[teams[teamid]["gameid"]]).start()
 
@@ -78,7 +82,7 @@ def check_game_over(gameid):
 	is_over = all(game_states[t]["phase"] == "stopped" for t in games[gameid])
 	if is_over:
 		players = get_all_players(gameid)
-		pusher.trigger(players, 'game-products', get_game_products(gameid))
+		pusher.trigger(players, 'game-products', {"payload": get_game_products(gameid)})
 
 def get_all_players(gameid):
 	players = []
@@ -87,7 +91,7 @@ def get_all_players(gameid):
 	return players
 
 def get_game_products(gameid):
-	return "1 2 3"
+	return [{"config": game_states[t]["config"], "name": game_states[t]["img_name"]} for t in games[gameid]]
 
 def send_game_results():
 	results = gamedata.get_game_results(gameid)
@@ -126,7 +130,7 @@ def start_game(participants):
 		users[ua] = new_team
 		users[ub] = new_team
 		teams[new_team] = {"users":[ua, ub], "gameid": new_gameid}
-		game_states[new_team] = {"phase":"running"}
+		game_states[new_team] = {"phase":"running", "config": None}
 		new_teams.append(new_team)
 	games[new_gameid] = new_teams
 	print(games, teams, users)
