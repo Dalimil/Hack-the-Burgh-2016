@@ -53,6 +53,10 @@ def update_game():
 	data  = request.get_json()
 	uid = data['uid']
 	shapes = data['shapes']
+	
+	if not users.has_key(uid):
+		return "error"
+
 	teamid = users[uid]
 	print(uid, shapes)
 	game_states[teamid]["config"] = shapes
@@ -60,8 +64,10 @@ def update_game():
 
 @app.route('/finish', methods=['POST'])
 def finish_game():
-	uid = request.form['uid']
-	img_name = request.form['name']
+	data  = request.get_json()
+	uid = data['uid']
+	img_name = data['name']
+
 	if not users.has_key(uid):
 		return "error"
 
@@ -79,7 +85,7 @@ def rate_game():
 	gameid = teams[teamid]["gameid"]
 	gamedata.new_score_received(gameid, teamid, score)
 
-	if(game_ratings[gameid] == (GAME_SIZE//2 - 1)*(GAME_SIZE//2)):
+	if(game_ratings[gameid] >= (GAME_SIZE//2 - 1)*(GAME_SIZE//2)):
 		send_game_results(gameid)
 	return "ok"
 

@@ -1,0 +1,18 @@
+sudo apt-get update && sudo apt-get install apache2 libapache2-mod-wsgi python-pip && sudo pip install flask && mkdir ~/flaskapp && sudo ln -sT ~/flaskapp /var/www/html/flaskapp && cd ~/flaskapp && wget https://github.com/Dalimil/Hack-the-Burgh-2016/archive/master.zip && unzip master.zip && mv Hack-the-Burgh-2016-master/* .
+
+-----------------
+In the apache configuration file located at /etc/apache2/sites-enabled/000-default.conf, add the following block just after the DocumentRoot /var/www/html line:
+
+WSGIDaemonProcess flaskapp threads=5
+WSGIScriptAlias / /var/www/html/flaskapp/flaskapp.wsgi
+
+<Directory flaskapp>
+    WSGIProcessGroup flaskapp
+    WSGIApplicationGroup %{GLOBAL}
+    Order deny,allow
+    Allow from all
+</Directory>
+
+-------------------
+
+sudo apachectl restart
