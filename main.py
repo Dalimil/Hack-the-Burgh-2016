@@ -65,20 +65,28 @@ def update_game():
 
 @app.route('/finish', methods=['POST'])
 def finish_game():
+	print("called finished")
 	data  = request.get_json()
 	print("finish: ", data)
 	uid = data['uid']
 	img_name = data['name']
 
 	if not users.has_key(uid):
+		print("error")
 		return "error"
 
 	teamid = users[uid]
 	game_states[teamid]["phase"] = "stopped"
-	game_states[teamid]["img_name"] = img_name
+	print(teams[teamid]["gameid"])
+	if(game_states[teamid].has_key("img_name")):
+		game_states[teamid]["img_name"] += " "+img_name
+	else:
+		game_states[teamid]["img_name"] = img_name
+
+	print(teams[teamid]["users"])
 	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
-	Timer(2.0, check_game_over, args=[teams[teamid]["gameid"]]).start()
-	return "ok"
+	sleep(2)
+	return json.dumps({"payload": check_game_over(teams[teamid]["gameid"])})
 
 @app.route('/rate', methods=['POST'])
 def rate_game():
@@ -92,10 +100,22 @@ def rate_game():
 	return "ok"
 
 def check_game_over(gameid):
-	is_over = all(game_states[t]["phase"] == "stopped" for t in games[gameid])
+	print("checking game over ")
+	is_over = True
+	for t in games[gameid]:
+		if(game_states[t]["phase"] != "stopped"):
+			is_over = False
+	print("checking game over ", is_over)
 	if is_over:
 		players = get_all_players(gameid)
-		pusher.trigger(players, 'game-products', {"payload": get_game_products(gameid)})
+		game_products = get_game_products(gameid)
+		print("sent products", game_products)
+		print(players)
+		return game_products
+	else:
+		print("I'll try later")
+		sleep(2)
+		return check_game_over(gameid)
 
 def get_all_players(gameid):
 	players = []
@@ -116,7 +136,7 @@ def check_start_game():
 	if(len(start_queue) >= GAME_SIZE and not schedule_lock):
 		print("new game scheduled")
 		schedule_lock = True
-		Timer(5.0, start_game, args=[start_queue[:GAME_SIZE]]).start()
+		Timer(3.0, start_game, args=[start_queue[:GAME_SIZE]]).start()
 		return True
 	return False
 
@@ -157,4 +177,4 @@ def debug():
 
 
 if __name__ == '__main__':
-	app.run(port=8080)
+	app.run(port=8080, debug=True)
