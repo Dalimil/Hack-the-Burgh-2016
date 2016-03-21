@@ -18,8 +18,8 @@ app.secret_key = "bnNoqxXSgzoXS3j4v3v3zv8nRzn"
 
 start_queue = []
 schedule_lock = False
-GAME_SIZE = 2
-TEAM_SIZE = 1
+GAME_SIZE = 2 # should be 6
+TEAM_SIZE = 1 # should be 2
 games = {} # <gameid, list(channelids)>
 teams = {} # <channelid, <list(userids), gameid> >
 users = {} # <userid, channelid>
@@ -64,6 +64,7 @@ def update_game():
 	pusher.trigger(teams[teamid]["users"], "game-updated", {"payload": shapes})
 	return "ok"
 
+tries = 0
 @app.route('/finish', methods=['POST'])
 def finish_game():
 	print("called finished")
@@ -85,9 +86,11 @@ def finish_game():
 		game_states[teamid]["img_name"] = img_name
 
 	print(teams[teamid]["users"])
+	global tries
+	tries = 0
 	pusher.trigger(teams[teamid]["users"], "game-finished", {"payload": "game-finished"})
 	sleep(2)
-	return json.dumps({"payload": check_game_over(teams[teamid]["gameid"])})
+	return json.dumps({"payload": check_game_over(teams[teamid]["gameid"])}) # this should be made async with Pusher
 
 @app.route('/rate', methods=['POST'])
 def rate_game():
@@ -99,6 +102,7 @@ def rate_game():
 	if(game_ratings[gameid] >= (TEAM_SIZE - 1)*(TEAM_SIZE)):
 		send_game_results(gameid)
 	return "ok"
+
 
 def check_game_over(gameid):
 	print("checking game over ")
@@ -115,6 +119,10 @@ def check_game_over(gameid):
 		return game_products
 	else:
 		print("I'll try later")
+		global tries
+		tries += 1
+		if(tries > 3):
+			return get_game_products(gameid)
 		sleep(2)
 		return check_game_over(gameid)
 
@@ -179,4 +187,4 @@ def debug():
 
 
 if __name__ == '__main__':
-	app.run(port=8080, debug=True)
+	app.run(port=8080)

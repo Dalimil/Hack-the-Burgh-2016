@@ -1,19 +1,11 @@
 # Hack the Burgh - Hackathon  (Edinburgh, 19-20th Mar 2016)
 
-### This is the backend part of the app
+## This is the backend part of the app BlockParty
 
+### See [BlockParty on Devpost](http://devpost.com/software/block-party) - A multiplayer game for iOS where you create images out of shapes.
 
-### Installation
+![BlockParty screenshot](https://github.com/Dalimil/Hack-the-Burgh-2016/blob/master/screenshot.jpg)
 
-#### Install required packages
-```sh
-pip install -r requirements.txt
-```
-
-#### Start the server (localhost:8080):
-```sh
-python main.py
-```
 
 ### API
 ```
@@ -41,3 +33,4 @@ Client assigns a rating to a game:
 
 Client closes the game/app or leaves the queue:
 	- unsubscribe from the personal channel
+```
